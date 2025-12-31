@@ -7,6 +7,7 @@
 #include <SDL2/SDL_video.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #define WIDTH 800
 #define HEIGHT 600
@@ -29,6 +30,7 @@ void clear_grid(Cell grid[GRID_HEIGHT][GRID_WIDTH],
   for (int y = 0; y < GRID_HEIGHT; y++) {
     for (int x = 0; x < GRID_WIDTH; x++) {
       grid[y][x] = CELL_EMPTY;
+      next_grid[y][x] = CELL_EMPTY;
     }
   }
   printf("Grid Cleared\n");
@@ -53,6 +55,9 @@ void draw_grid(Cell grid[GRID_HEIGHT][GRID_WIDTH], SDL_Surface *psurface) {
     }
   }
 }
+int is_solid(int cell) {
+  return cell == CELL_SAND; // more solid logic in here later on
+}
 void update_block(Cell grid[GRID_HEIGHT][GRID_WIDTH],
                   Cell next_grid[GRID_HEIGHT][GRID_WIDTH]) {
   for (int y = 0; y < GRID_HEIGHT; y++)
@@ -76,12 +81,13 @@ void update_block(Cell grid[GRID_HEIGHT][GRID_WIDTH],
         }
         // down right
         else if (y < GRID_HEIGHT - 1 && x < GRID_WIDTH - 1 &&
+                 grid[y + 1][x] != CELL_EMPTY &&
                  grid[y + 1][x + 1] == CELL_EMPTY) {
           next_grid[y + 1][x + 1] = CELL_SAND;
           next_grid[y][x] = CELL_EMPTY;
         }
         // down left
-        else if (y < GRID_HEIGHT - 1 && x > 0 &&
+        else if (y < GRID_HEIGHT - 1 && x > 0 && grid[y + 1][x] != CELL_EMPTY &&
                  grid[y + 1][x - 1] == CELL_EMPTY) {
           next_grid[y + 1][x - 1] = CELL_SAND;
           next_grid[y][x] = CELL_EMPTY;
@@ -98,31 +104,46 @@ void update_block(Cell grid[GRID_HEIGHT][GRID_WIDTH],
 
         // down right
         else if (y < GRID_HEIGHT - 1 && x < GRID_WIDTH - 1 &&
+                 grid[y + 1][x] != CELL_EMPTY &&
                  grid[y + 1][x + 1] == CELL_EMPTY) {
           next_grid[y + 1][x + 1] = CELL_WATER;
           next_grid[y][x] = CELL_EMPTY;
         }
         // down left
-        else if (y < GRID_HEIGHT - 1 && x > 0 &&
+        else if (y < GRID_HEIGHT - 1 && x > 0 && grid[y + 1][x] != CELL_EMPTY &&
                  grid[y + 1][x - 1] == CELL_EMPTY) {
           next_grid[y + 1][x - 1] = CELL_WATER;
           next_grid[y][x] = CELL_EMPTY;
         }
 
         //// TODO simulate right and left water flow
+        // random right or left
+        else if (x > 0 && x < GRID_WIDTH - 1 && grid[y + 1][x] != CELL_EMPTY &&
+                 grid[y][x + 1] == CELL_EMPTY && grid[y][x - 1] == CELL_EMPTY) {
+          int direction = rand() % 2;
+          // one liner char *result = (rand() % 2) ? "right" : "left";
+          if (direction == 1) {
+            next_grid[y][x + 1] = CELL_WATER;
+            next_grid[y][x] = CELL_EMPTY;
 
+          } else {
+            next_grid[y][x - 1] = CELL_WATER;
+            next_grid[y][x] = CELL_EMPTY;
+          }
+        }
         // right
-        // else if (x > 0 && x < GRID_WIDTH && grid[y][x + 1] == CELL_EMPTY) {
-        //
-        //   next_grid[y][x + 1] = CELL_WATER;
-        //   next_grid[y][x] = CELL_EMPTY;
-        // }
-        // // left
-        // else if (x > 0 && x < GRID_WIDTH - 1 && grid[y][x - 1] == CELL_EMPTY)
-        // {
-        //   next_grid[y][x - 1] = CELL_WATER;
-        //   next_grid[y][x] = CELL_EMPTY;
-        // }
+        else if (x < GRID_WIDTH - 1 && is_solid(grid[y + 1][x]) &&
+                 grid[y][x + 1] == CELL_EMPTY) {
+
+          next_grid[y][x + 1] = CELL_WATER;
+          next_grid[y][x] = CELL_EMPTY;
+        }
+        // left
+        else if (x > 0 && x < GRID_WIDTH && is_solid(grid[y + 1][x]) &&
+                 grid[y][x - 1] == CELL_EMPTY) {
+          next_grid[y][x - 1] = CELL_WATER;
+          next_grid[y][x] = CELL_EMPTY;
+        }
       }
     }
   }
