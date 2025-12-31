@@ -62,6 +62,8 @@ void update_block(Cell grid[GRID_HEIGHT][GRID_WIDTH],
     for (int x = 0; x < GRID_WIDTH; x++) {
       if (grid[y][x] == CELL_SAND) {
 
+        //// TODO handle sand and water interaction
+
         // down
         if (y < GRID_HEIGHT - 1 && grid[y + 1][x] == CELL_EMPTY) {
           next_grid[y + 1][x] = CELL_SAND;
@@ -106,6 +108,9 @@ void update_block(Cell grid[GRID_HEIGHT][GRID_WIDTH],
           next_grid[y + 1][x - 1] = CELL_WATER;
           next_grid[y][x] = CELL_EMPTY;
         }
+
+        //// TODO simulate right and left water flow
+
         // right
         // else if (x > 0 && x < GRID_WIDTH && grid[y][x + 1] == CELL_EMPTY) {
         //
